@@ -197,8 +197,8 @@ const translations: Translations = {
 
 interface LanguageContextType {
     language: string
-    changeLanguage: (lang: string) => void
-    t: (key: string) => string
+    changeLanguage: (_lang: string) => void
+    t: (_key: string) => string
     availableLanguages: Language[]
 }
 

@@ -1,62 +1,35 @@
 {
-    "compilerOptions": {
-        "target": "es5",
-        "lib": [
-            "dom",
-            "dom.iterable",
-            "es6"
-        ],
-        "allowJs": true,
-        "skipLibCheck": true,
-        "strict": true,
-        "noEmit": true,
-        "esModuleInterop": true,
-        "module": "esnext",
-        "moduleResolution": "bundler",
-        "resolveJsonModule": true,
-        "isolatedModules": true,
-        "jsx": "preserve",
-        "incremental": true,
-        "plugins": [
-            {
-                "name": "next"
-            }
-        ],
-        "baseUrl": ".",
-        "paths": {
-            "@/*": [
-                "./src/*"
-            ],
-            "@/components/*": [
-                "./src/components/*"
-            ],
-            "@/lib/*": [
-                "./src/lib/*"
-            ],
-            "@/utils/*": [
-                "./src/utils/*"
-            ],
-            "@/types/*": [
-                "./src/types/*"
-            ],
-            "@/hooks/*": [
-                "./src/hooks/*"
-            ],
-            "@/context/*": [
-                "./src/context/*"
-            ],
-            "@/api/*": [
-                "./src/app/api/*"
-            ]
-        }
-    },
-    "include": [
-        "next-env.d.ts",
-        "**/*.ts",
-        "**/*.tsx",
-        ".next/types/**/*.ts"
+  "compilerOptions": {
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
     ],
-    "exclude": [
-        "node_modules"
-    ]
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": true,
+    "incremental": true,
+    "module": "esnext",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "strictNullChecks": true
+  },
+  "include": [
+    "next-env.d.ts",
+    ".next/types/**/*.ts",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
