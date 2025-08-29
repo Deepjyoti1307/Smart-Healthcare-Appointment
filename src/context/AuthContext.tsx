@@ -2,11 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { User, Patient, Doctor } from '@/types'
+import { supabase, signInWithGoogle, signOut as supabaseSignOut } from '@/lib/supabase'
 
 interface AuthContextType {
     user: User | null
     login: (email: string, password: string, userType?: 'patient' | 'doctor') => Promise<User>
     register: (userData: Partial<User>) => Promise<User>
+    loginWithGoogle: () => Promise<void>
     logout: () => void
     updateProfile: (updates: Partial<User>) => void
     loading: boolean
@@ -34,17 +36,67 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        // Check for stored user data
-        const storedUser = localStorage.getItem('user')
-        if (storedUser) {
+        const initAuth = async () => {
             try {
-                setUser(JSON.parse(storedUser))
+                if (supabase) {
+                    // Get initial session
+                    const { data: { session } } = await supabase.auth.getSession()
+
+                    if (session?.user) {
+                        // Convert Supabase user to our User type
+                        const appUser: User = {
+                            id: session.user.id,
+                            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+                            email: session.user.email || '',
+                            userType: 'patient', // Default to patient
+                            phone: session.user.user_metadata?.phone || '',
+                            dateOfBirth: session.user.user_metadata?.dateOfBirth || '',
+                            location: session.user.user_metadata?.location || ''
+                        }
+                        setUser(appUser)
+                        localStorage.setItem('user', JSON.stringify(appUser))
+                    }
+
+                    // Listen for auth changes
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+                        async (event, session) => {
+                            if (session?.user) {
+                                const appUser: User = {
+                                    id: session.user.id,
+                                    name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User',
+                                    email: session.user.email || '',
+                                    userType: 'patient',
+                                    phone: session.user.user_metadata?.phone || '',
+                                    dateOfBirth: session.user.user_metadata?.dateOfBirth || '',
+                                    location: session.user.user_metadata?.location || ''
+                                }
+                                setUser(appUser)
+                                localStorage.setItem('user', JSON.stringify(appUser))
+                            } else {
+                                setUser(null)
+                                localStorage.removeItem('user')
+                            }
+                            setLoading(false)
+                        }
+                    )
+
+                    setLoading(false)
+                    return () => subscription.unsubscribe()
+                } else {
+                    // Mock authentication for development
+                    const mockUser = localStorage.getItem('user')
+                    if (mockUser) {
+                        setUser(JSON.parse(mockUser))
+                    }
+                    setLoading(false)
+                }
             } catch (error) {
-                console.error('Error parsing stored user data:', error)
-                localStorage.removeItem('user')
+                console.error('Auth initialization error:', error)
+                setLoading(false)
             }
         }
-        setLoading(false)
+
+        initAuth()
     }, [])
 
     const login = async (email: string, password: string, userType: 'patient' | 'doctor' = 'patient'): Promise<User> => {
@@ -85,9 +137,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return newUser
     }
 
-    const logout = () => {
-        setUser(null)
-        localStorage.removeItem('user')
+    const loginWithGoogle = async () => {
+        setLoading(true)
+        try {
+            const { data, error } = await signInWithGoogle()
+            if (error) throw error
+            // The auth state change listener will handle setting the user
+        } catch (error) {
+            console.error('Google login error:', error)
+            throw error
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const logout = async () => {
+        setLoading(true)
+        try {
+            if (supabase) {
+                await supabaseSignOut()
+            } else {
+                // Mock logout
+                setUser(null)
+                localStorage.removeItem('user')
+            }
+        } catch (error) {
+            console.error('Logout error:', error)
+        } finally {
+            setLoading(false)
+        }
     }
 
     const updateProfile = (updates: Partial<User>) => {
@@ -101,6 +179,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user,
         login,
         register,
+        loginWithGoogle,
         logout,
         updateProfile,
         loading,
