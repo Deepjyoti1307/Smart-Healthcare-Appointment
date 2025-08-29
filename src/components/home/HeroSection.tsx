@@ -121,13 +121,13 @@ const HeroSection: React.FC = () => {
                                         {/* Chat Bubbles */}
                                         <div className="space-y-3">
                                             <div className="bg-background/80 backdrop-blur-sm rounded-2xl p-4 shadow-sm border">
-                                                <div className="text-sm text-muted-foreground">"How can I help you today?"</div>
+                                                <div className="text-sm text-muted-foreground">&ldquo;How can I help you today?&rdquo;</div>
                                             </div>
                                             <div className="bg-primary/10 rounded-2xl p-4 ml-8">
-                                                <div className="text-sm">"I have a headache..."</div>
+                                                <div className="text-sm">&ldquo;I have a headache...&rdquo;</div>
                                             </div>
                                             <div className="bg-background/80 backdrop-blur-sm rounded-2xl p-4 shadow-sm border">
-                                                <div className="text-sm text-muted-foreground">"Let me find the right doctor for you."</div>
+                                                <div className="text-sm text-muted-foreground">&ldquo;Let me find the right doctor for you.&rdquo;</div>
                                             </div>
                                         </div>
                                     </div>
