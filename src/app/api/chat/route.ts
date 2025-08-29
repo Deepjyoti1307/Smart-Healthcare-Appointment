@@ -7,6 +7,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 export async function POST(request: NextRequest) {
     try {
         console.log('API Key available:', !!process.env.GEMINI_API_KEY)
+        console.log('Environment variables:', Object.keys(process.env).filter(key => key.includes('GEMINI')))
 
         const { message } = await request.json()
 
@@ -19,6 +20,16 @@ export async function POST(request: NextRequest) {
 
         if (!process.env.GEMINI_API_KEY) {
             console.error('Gemini API key not found in environment variables')
+
+            // Provide a fallback response when API key is missing
+            const fallbackResponse = getFallbackHealthResponse(message)
+            if (fallbackResponse) {
+                console.log('Using fallback response due to missing API key')
+                return NextResponse.json({
+                    response: fallbackResponse + "\n\n⚠️ Note: Using fallback response due to API configuration. Please contact support if this issue persists."
+                })
+            }
+
             return NextResponse.json(
                 { error: 'API configuration error. Please check server setup.' },
                 { status: 500 }
@@ -71,9 +82,23 @@ User message: ${message}`
                 name: error.name
             })
 
-            if (error.message.includes('API key')) {
+            if (error.message.includes('API key') || error.message.includes('API_KEY')) {
                 errorMessage = 'API configuration error. Please check server setup.'
             }
+        }
+
+        // Try to provide a fallback response even on API error
+        try {
+            const { message } = await request.json()
+            const fallbackResponse = getFallbackHealthResponse(message)
+            if (fallbackResponse) {
+                console.log('Using fallback response due to API error')
+                return NextResponse.json({
+                    response: fallbackResponse + "\n\n⚠️ Note: Using fallback response due to temporary service issues. Please try again later for AI-powered responses."
+                })
+            }
+        } catch (fallbackError) {
+            console.error('Fallback response error:', fallbackError)
         }
 
         return NextResponse.json(
@@ -81,4 +106,32 @@ User message: ${message}`
             { status: 500 }
         )
     }
+}
+
+// Fallback responses for when Gemini API is unavailable
+function getFallbackHealthResponse(message: string): string | null {
+    const lowerMessage = message.toLowerCase()
+
+    if (lowerMessage.includes('headache') || lowerMessage.includes('head pain')) {
+        return "For headaches, try resting in a quiet, dark room and stay hydrated. Apply a cold or warm compress to your head or neck. If headaches are severe, frequent, or accompanied by other symptoms, please consult a healthcare professional. 🩺"
+    }
+
+    if (lowerMessage.includes('fever') || lowerMessage.includes('temperature')) {
+        return "For fever, rest and drink plenty of fluids. You can take over-the-counter fever reducers like acetaminophen or ibuprofen as directed. Seek immediate medical attention if fever is very high (104°F/40°C+) or accompanied by severe symptoms. 🌡️"
+    }
+
+    if (lowerMessage.includes('cough') || lowerMessage.includes('throat')) {
+        return "For coughs and sore throats, try warm tea with honey, throat lozenges, and plenty of rest. Humidifiers can also help. If symptoms persist for more than a week or worsen, consult a healthcare provider. 🍯"
+    }
+
+    if (lowerMessage.includes('chest pain') || lowerMessage.includes('heart')) {
+        return "⚠️ IMPORTANT: Chest pain can be serious. If you're experiencing chest pain, especially with shortness of breath, nausea, or arm pain, seek immediate medical attention or call emergency services. Don't delay medical care for chest pain."
+    }
+
+    if (lowerMessage.includes('emergency') || lowerMessage.includes('urgent')) {
+        return "🚨 For medical emergencies, please call your local emergency number immediately (911 in the US). Don't rely on online advice for urgent medical situations. Get professional help right away."
+    }
+
+    // General health response
+    return "I'm here to help with your health questions! For the best personalized advice, please consult with a healthcare professional. In the meantime, maintaining good hygiene, staying hydrated, getting adequate rest, and eating nutritious foods are always beneficial. 💙"
 }
