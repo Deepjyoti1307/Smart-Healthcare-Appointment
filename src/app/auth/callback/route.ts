@@ -1,41 +1,22 @@
-'use client'
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { cookies } from 'next/headers'
+import { NextRequest, NextResponse } from 'next/server'
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+export async function GET(request: NextRequest) {
+  const requestUrl = new URL(request.url)
+  const code = requestUrl.searchParams.get('code')
 
-export default function AuthCallback() {
-    const router = useRouter()
+  if (code) {
+    const supabase = createRouteHandlerClient({ cookies })
+    
+    try {
+      await supabase.auth.exchangeCodeForSession(code)
+    } catch (error) {
+      console.error('Error exchanging code for session:', error)
+      return NextResponse.redirect(`${requestUrl.origin}/auth?error=callback_error`)
+    }
+  }
 
-    useEffect(() => {
-        const handleAuthCallback = async () => {
-            try {
-                if (supabase) {
-                    const { data, error } = await supabase.auth.getSession()
-                    if (data.session) {
-                        router.push('/dashboard')
-                    } else {
-                        router.push('/auth')
-                    }
-                } else {
-                    // Mock success for development
-                    router.push('/dashboard')
-                }
-            } catch (error) {
-                console.error('Auth callback error:', error)
-                router.push('/auth')
-            }
-        }
-
-        handleAuthCallback()
-    }, [router])
-
-    return (
-        <div className= "min-h-screen bg-black flex items-center justify-center" >
-        <div className="text-center" >
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4" > </div>
-                < p className = "text-white" > Signing you in...</p>
-                    </div>
-                    </div>
-  )
+  // URL to redirect to after sign in process completes
+  return NextResponse.redirect(`${requestUrl.origin}/dashboard`)
 }
