@@ -104,6 +104,14 @@ module.exports = {
                     "0%, 100%": { opacity: "1" },
                     "50%": { opacity: "0.5" },
                 },
+                "aurora": {
+                    "0%": {
+                        "background-position": "50% 50%, 50% 50%",
+                    },
+                    "100%": {
+                        "background-position": "350% 50%, 350% 50%",
+                    },
+                },
             },
             animation: {
                 "accordion-down": "accordion-down 0.2s ease-out",
@@ -112,6 +120,7 @@ module.exports = {
                 "slide-in": "slide-in 0.3s ease-out",
                 "slide-up": "slide-up 0.3s ease-out",
                 "pulse-slow": "pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+                "aurora": "aurora 60s linear infinite",
             },
             fontFamily: {
                 sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
